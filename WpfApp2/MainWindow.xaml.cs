@@ -31,7 +31,7 @@ namespace WpfApp2
         {
             InitializeComponent();
 
-            string connectionString = ConfigurationManager.ConnectionStrings["Default"].ConnectionString;
+            string connectionString = "Data Source="+ Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - 9) + "TechnoProbe.db;Version=3;New=False;Compress=True;";
             sqlConnection =new SQLiteConnection(connectionString);
             showTypes();
         }
@@ -46,7 +46,7 @@ namespace WpfApp2
                     DataTable dataTable = new DataTable();
                     sqLiteDataAdapter.Fill(dataTable);
                     Types.DisplayMemberPath = "Type";
-                    Types.SelectedValuePath = "Id";
+                    Types.SelectedValuePath = "Type";
                     Types.ItemsSource = dataTable.DefaultView;
                 }
             }
@@ -58,16 +58,16 @@ namespace WpfApp2
         public void showJobs() {
             try
             {
-                string query = "SELECT * FROM fase2 WHERE fase2.Fase1Id = @Fase1Id";
+                string query = "SELECT * FROM fase2 WHERE fase2.Type = @Type";
                 SQLiteCommand sqLiteCommand = new SQLiteCommand(query, sqlConnection);
                 SQLiteDataAdapter sqLiteDataAdapter = new SQLiteDataAdapter(sqLiteCommand);
                 using (sqLiteDataAdapter)
                 {
-                    sqLiteCommand.Parameters.AddWithValue("@Fase1Id", Types.SelectedValue);
+                    sqLiteCommand.Parameters.AddWithValue("@Type", Types.SelectedValue);
                     DataTable dataTable = new DataTable();
                     sqLiteDataAdapter.Fill(dataTable);
                     Jobs.DisplayMemberPath = "Job";
-                    Jobs.SelectedValuePath = "Id";
+                    Jobs.SelectedValuePath = "Job";
                     Jobs.ItemsSource = dataTable.DefaultView;
                 }
             }
@@ -80,16 +80,16 @@ namespace WpfApp2
         public void showProblems() {
             try
             {
-                string query = "SELECT * FROM fase3 WHERE fase3.Fase2Id = @Fase2Id";
+                string query = "SELECT * FROM fase3 WHERE fase3.Job = @Job";
                 SQLiteCommand sqLiteCommand = new SQLiteCommand(query, sqlConnection);
                 SQLiteDataAdapter sqLiteDataAdapter = new SQLiteDataAdapter(sqLiteCommand);
                 using (sqLiteDataAdapter)
                 {
-                    sqLiteCommand.Parameters.AddWithValue("@Fase2Id", Jobs.SelectedValue);
+                    sqLiteCommand.Parameters.AddWithValue("@Job", Jobs.SelectedValue);
                     DataTable dataTable = new DataTable();
                     sqLiteDataAdapter.Fill(dataTable);
                     Problems.DisplayMemberPath = "Problem";
-                    Problems.SelectedValuePath = "Id";
+                    Problems.SelectedValuePath = "Problem";
                     Problems.ItemsSource = dataTable.DefaultView;
                 }
             }
@@ -129,9 +129,9 @@ namespace WpfApp2
                     string query = "INSERT INTO FinalResults (Type, Job, Problem, Note, FullName) values (@Type, @Job, @Problem, @Note, @FullName)";
                     SQLiteCommand sqLiteCommand = new SQLiteCommand(query, sqlConnection);
                     sqlConnection.Open();
-                    sqLiteCommand.Parameters.AddWithValue("@Type", Types.SelectedItem.ToString());
-                    sqLiteCommand.Parameters.AddWithValue("@Job", Jobs.SelectedItem.ToString());
-                    sqLiteCommand.Parameters.AddWithValue("@Problem", Problems.SelectedItem.ToString());
+                    sqLiteCommand.Parameters.AddWithValue("@Type", Types.SelectedValue);
+                    sqLiteCommand.Parameters.AddWithValue("@Job", Jobs.SelectedValue);
+                    sqLiteCommand.Parameters.AddWithValue("@Problem", Problems.SelectedValue);
                     sqLiteCommand.Parameters.AddWithValue("@Note", Note.Text);
                     sqLiteCommand.Parameters.AddWithValue("@FullName", getFullName());
                     sqLiteCommand.ExecuteScalar();
