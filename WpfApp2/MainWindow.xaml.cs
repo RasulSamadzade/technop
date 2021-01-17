@@ -30,7 +30,7 @@ namespace WpfApp2
         public MainWindow()
         {
             InitializeComponent();
-
+            Directory.CreateDirectory(Directory.GetDirectoryRoot(Directory.GetCurrentDirectory()) + "TechnoProbe");
             string connectionString = "Data Source="+ Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - 9) + "TechnoProbe.db;Version=3;New=False;Compress=True;";
             sqlConnection =new SQLiteConnection(connectionString);
             showTypes();
@@ -115,7 +115,8 @@ namespace WpfApp2
                 worksheet.Cells[headerRange].LoadFromArrays(headerRow);
                 var data = generateListFromDatabase();
                 worksheet.Cells[2, 1].LoadFromArrays(data);
-                FileInfo excelFile = new FileInfo(@"C:\Users\rsamadza\excel files\test.xlsx");
+                var dir = Directory.GetDirectoryRoot(Directory.GetCurrentDirectory()) + "TechnoProbe";
+                FileInfo excelFile = new FileInfo(dir +"\\TechnoProb.xlsx");
                 excel.SaveAs(excelFile);
             }
         }
