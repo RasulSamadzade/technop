@@ -108,12 +108,13 @@ namespace WpfApp2
                 excel.Workbook.Worksheets.Add("Worksheet1");
                 excel.Workbook.Worksheets.Add("Worksheet2");
                 excel.Workbook.Worksheets.Add("Worksheet3");
-
+                var data = generateListFromDatabase();
                 var headerRow = new List<string[]>(){ new string[] { "Type", "Job", "Problem", "Note", "Full Name" } };
                 string headerRange = "A1:" + Char.ConvertFromUtf32(headerRow[0].Length + 64) + "1";
+                string borderRange = "A1:" + Char.ConvertFromUtf32(headerRow[0].Length + 64) + (data.Count + 1).ToString();
                 var worksheet = excel.Workbook.Worksheets["Worksheet1"];
+                setExcelStyle(worksheet, headerRange, borderRange);
                 worksheet.Cells[headerRange].LoadFromArrays(headerRow);
-                var data = generateListFromDatabase();
                 worksheet.Cells[2, 1].LoadFromArrays(data);
                 var dir = Directory.GetDirectoryRoot(Directory.GetCurrentDirectory()) + "TechnoProbe";
                 FileInfo excelFile = new FileInfo(dir +"\\TechnoProb.xlsx");
@@ -222,6 +223,17 @@ namespace WpfApp2
                 sqlConnection.Close();
             }
             return cellData;
+        }
+
+        public void setExcelStyle(OfficeOpenXml.ExcelWorksheet worksheet, String headerRange, String borderRange) {
+            worksheet.Cells[headerRange].Style.Font.Bold = true;
+            worksheet.Cells[headerRange].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+            worksheet.Cells[headerRange].Style.Fill.BackgroundColor.SetColor(0, 150, 150, 150);
+            worksheet.Cells[headerRange].AutoFitColumns();
+            worksheet.Cells[borderRange].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+            worksheet.Cells[borderRange].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+            worksheet.Cells[borderRange].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+            worksheet.Cells[borderRange].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
         }
     }
 }
