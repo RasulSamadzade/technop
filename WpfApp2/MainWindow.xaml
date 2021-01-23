@@ -8,7 +8,7 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <ComboBox x:Name="Types" HorizontalAlignment="Left" Margin="10,26,0,0" VerticalAlignment="Top" Width="177" Height="28" SelectionChanged="Types_SelectionChanged"/>
-        <ListBox x:Name="Jobs" HorizontalAlignment="Left" Height="256" Margin="10,79,0,0" VerticalAlignment="Top" Width="177" SelectionChanged="Jobs_SelectionChanged"/>
+        <ListBox x:Name="Jobs" HorizontalAlignment="Left" Height="110" Margin="10,225,0,0" VerticalAlignment="Top" Width="177" SelectionChanged="Jobs_SelectionChanged"/>
         <ListBox x:Name="Problems" HorizontalAlignment="Left" Height="309" Margin="221,26,0,0" VerticalAlignment="Top" Width="283"/>
         <TextBox x:Name="Note" HorizontalAlignment="Left" Height="195" Margin="545,31,0,0" TextWrapping="Wrap" Text="Note..." VerticalAlignment="Top" Width="222" IsKeyboardFocusedChanged="Note_IsKeyboardFocusedChanged"/>
         <TextBox x:Name="Name" HorizontalAlignment="Left" Height="36" Margin="545,248,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="222"/>
@@ -17,5 +17,9 @@
         <Button x:Name="Generate" Content="Generate Excel File" HorizontalAlignment="Left" Margin="10,354,0,0" VerticalAlignment="Top" Width="494" Height="50" Click="Generate_Click"/>
         <Label Content="Name" HorizontalAlignment="Left" Margin="540,225,0,0" VerticalAlignment="Top"/>
         <Label Content="Surname" HorizontalAlignment="Left" Margin="539,279,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="PlateTypes" HorizontalAlignment="Left" Margin="10,71,0,0" VerticalAlignment="Top" Width="177" Height="28"/>
+        <TextBox x:Name="Id" HorizontalAlignment="Left" Height="28" Margin="10,112,0,0" TextWrapping="Wrap" Text="ID Code..." VerticalAlignment="Top" Width="177" IsKeyboardFocusedChanged="Id_IsKeyboardFocusedChanged"/>
+        <TextBox x:Name="PH" HorizontalAlignment="Left" Height="28" Margin="10,153,0,0" TextWrapping="Wrap" Text="PH Name..." VerticalAlignment="Top" Width="177" IsKeyboardFocusedChanged="PH_IsKeyboardFocusedChanged"/>
+        <TextBox x:Name="Holes" HorizontalAlignment="Left" Height="28" Margin="10,192,0,0" TextWrapping="Wrap" Text="Holes Number..." VerticalAlignment="Top" Width="177" IsKeyboardFocusedChanged="Holes_IsKeyboardFocusedChanged"/>
     </Grid>
 </Window>

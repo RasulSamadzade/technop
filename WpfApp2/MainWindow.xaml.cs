@@ -33,6 +33,7 @@ namespace WpfApp2
             Directory.CreateDirectory(Directory.GetDirectoryRoot(Directory.GetCurrentDirectory()) + "TechnoProbe");
             string connectionString = "Data Source="+ Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - 9) + "TechnoProbe.db;Version=3;New=False;Compress=True;";
             sqlConnection =new SQLiteConnection(connectionString);
+            PlateTypes.ItemsSource = new List<String>() { "U1", "U2", "M1", "M2", "L1", "L2" };
             showTypes();
         }
 
@@ -51,7 +52,7 @@ namespace WpfApp2
                 }
             }
             catch (Exception e) {
-                MessageBox.Show(e.ToString());
+                MessageBox.Show("ShowTypes" + e.ToString());
             }
         }
 
@@ -73,7 +74,7 @@ namespace WpfApp2
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.ToString());
+                MessageBox.Show("showjobs" + e.ToString());
             }
         }
 
@@ -95,7 +96,7 @@ namespace WpfApp2
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.ToString());
+                MessageBox.Show("showproblems" + e.ToString());
             }
         }
 
@@ -109,7 +110,7 @@ namespace WpfApp2
                 excel.Workbook.Worksheets.Add("Worksheet2");
                 excel.Workbook.Worksheets.Add("Worksheet3");
                 var data = generateListFromDatabase();
-                var headerRow = new List<string[]>(){ new string[] { "Type", "Job", "Problem", "Note", "Full Name" } };
+                var headerRow = new List<string[]>(){ new string[] { "Type", "Job", "Problem", "Note", "Full Name", "Id Code", "PH Name", "Holes Number", "Plate Type", "Date" } };
                 string headerRange = "A1:" + Char.ConvertFromUtf32(headerRow[0].Length + 64) + "1";
                 string borderRange = "A1:" + Char.ConvertFromUtf32(headerRow[0].Length + 64) + (data.Count + 1).ToString();
                 var worksheet = excel.Workbook.Worksheets["Worksheet1"];
@@ -125,10 +126,10 @@ namespace WpfApp2
         private void Save_Click(object sender, RoutedEventArgs e)
         {
             if (checkFields())
-            {
+            {           
                 try
                 {
-                    string query = "INSERT INTO FinalResults (Type, Job, Problem, Note, FullName) values (@Type, @Job, @Problem, @Note, @FullName)";
+                    string query = "INSERT INTO FinalResults (Type, Job, Problem, Note, FullName, IdCode, PHName, HolesNumber, PlateType, Date) values (@Type, @Job, @Problem, @Note, @FullName, @IdCode, @PHName, @HolesNumber, @PlateType, @Date)";
                     SQLiteCommand sqLiteCommand = new SQLiteCommand(query, sqlConnection);
                     sqlConnection.Open();
                     sqLiteCommand.Parameters.AddWithValue("@Type", Types.SelectedValue);
@@ -136,12 +137,17 @@ namespace WpfApp2
                     sqLiteCommand.Parameters.AddWithValue("@Problem", Problems.SelectedValue);
                     sqLiteCommand.Parameters.AddWithValue("@Note", Note.Text);
                     sqLiteCommand.Parameters.AddWithValue("@FullName", getFullName());
+                    sqLiteCommand.Parameters.AddWithValue("@IdCode", Id.Text);
+                    sqLiteCommand.Parameters.AddWithValue("@PHName", PH.Text);
+                    sqLiteCommand.Parameters.AddWithValue("@HolesNumber", Holes.Text);
+                    sqLiteCommand.Parameters.AddWithValue("@PlateType", PlateTypes.Text);
+                    sqLiteCommand.Parameters.AddWithValue("@Date", DateTime.Today.ToString());
                     sqLiteCommand.ExecuteScalar();
                     emptyFields();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.ToString());
+                    MessageBox.Show("saveclick" + ex.ToString());
                 }
                 finally
                 {
@@ -201,7 +207,7 @@ namespace WpfApp2
             var cellData = new List<string []>();
             try
             {
-                string query = "SELECT Type, Job, Problem, Note, FullName FROM FinalResults";
+                string query = "SELECT Type, Job, Problem, Note, FullName, IDCode, PHName, HolesNumber, PlateType, Date FROM FinalResults";
                 sqlConnection.Open();
 
                 var cmd = new SQLiteCommand(query, sqlConnection);
@@ -209,14 +215,14 @@ namespace WpfApp2
                 {
                     while (rdr.Read())
                     {
-                        var cell = new string[] { rdr.GetString(0), rdr.GetString(1), rdr.GetString(2), rdr.GetString(3), rdr.GetString(4) };
+                        var cell = new string[] { rdr.GetString(0), rdr.GetString(1), rdr.GetString(2), rdr.GetString(3), rdr.GetString(4), rdr.GetString(5), rdr.GetString(6), rdr.GetString(7), rdr.GetString(8), rdr.GetString(9) };
                         cellData.Add(cell);
                     }
                 }
                 return cellData;
             }
             catch(Exception ex) {
-                MessageBox.Show(ex.Message.ToString());
+                MessageBox.Show("generatelistfromdatabase" + ex.Message.ToString());
             }
             finally
             {
@@ -230,14 +236,58 @@ namespace WpfApp2
             worksheet.Cells[headerRange].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
             worksheet.Cells[headerRange].Style.Fill.BackgroundColor.SetColor(0, 150, 150, 150);
             worksheet.Cells.AutoFitColumns();
-            worksheet.Column(5).Width = 20;
             worksheet.Column(2).Width = 20;
             worksheet.Column(3).Width = 20;
             worksheet.Column(4).Width = 20;
+            worksheet.Column(5).Width = 20;
+            worksheet.Column(6).Width = 20;
+            worksheet.Column(7).Width = 20;
+            worksheet.Column(8).Width = 20;
+            worksheet.Column(9).Width = 20;
+            worksheet.Column(10).Width = 20;
             worksheet.Cells[borderRange].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
             worksheet.Cells[borderRange].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
             worksheet.Cells[borderRange].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
             worksheet.Cells[borderRange].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+        }
+
+        private void Id_IsKeyboardFocusedChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            TextBox textBox = sender as TextBox;
+            if (textBox.Text.Equals("ID Code..."))
+            {
+                textBox.Text = "";
+            }
+            else if (textBox.Text.Equals(""))
+            {
+                textBox.Text = "ID Code...";
+            }
+        }
+
+        private void PH_IsKeyboardFocusedChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            TextBox textBox = sender as TextBox;
+            if (textBox.Text.Equals("PH Name..."))
+            {
+                textBox.Text = "";
+            }
+            else if (textBox.Text.Equals(""))
+            {
+                textBox.Text = "PH Name...";
+            }
+        }
+
+        private void Holes_IsKeyboardFocusedChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            TextBox textBox = sender as TextBox;
+            if (textBox.Text.Equals("Holes Number..."))
+            {
+                textBox.Text = "";
+            }
+            else if (textBox.Text.Equals(""))
+            {
+                textBox.Text = "Holes Number...";
+            }
         }
     }
 }
