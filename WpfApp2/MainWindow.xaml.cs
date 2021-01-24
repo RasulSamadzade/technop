@@ -111,7 +111,7 @@ namespace WpfApp2
                 excel.Workbook.Worksheets.Add("Worksheet2");
                 excel.Workbook.Worksheets.Add("Worksheet3");
                 var data = generateListFromDatabase();
-                var headerRow = new List<string[]>(){ new string[] { "Type", "Job", "Problem", "Note", "Full Name", "Id Code", "PH Name", "Holes Number", "Plate Type", "Date" } };
+                var headerRow = new List<string[]>(){ new string[] { "IDcode", "Date", "FullName", "PHName", "PlateType", "HolesNumber", "Type", "Job", "Problem", "Note" } };
                 string headerRange = "A1:" + Char.ConvertFromUtf32(headerRow[0].Length + 64) + "1";
                 string borderRange = "A1:" + Char.ConvertFromUtf32(headerRow[0].Length + 64) + (data.Count + 1).ToString();
                 var worksheet = excel.Workbook.Worksheets["Worksheet1"];
@@ -142,7 +142,7 @@ namespace WpfApp2
                     sqLiteCommand.Parameters.AddWithValue("@PHName", PH.Text);
                     sqLiteCommand.Parameters.AddWithValue("@HolesNumber", Holes.Text);
                     sqLiteCommand.Parameters.AddWithValue("@PlateType", PlateTypes.Text);
-                    sqLiteCommand.Parameters.AddWithValue("@Date", DateTime.Today.ToString());
+                    sqLiteCommand.Parameters.AddWithValue("@Date", (DateTime.Now.Date + DateTime.Now.TimeOfDay).ToString());
                     sqLiteCommand.ExecuteScalar();
                     emptyFields();
                 }
@@ -208,7 +208,7 @@ namespace WpfApp2
             var cellData = new List<string []>();
             try
             {
-                string query = "SELECT Type, Job, Problem, Note, FullName, IDCode, PHName, HolesNumber, PlateType, Date FROM FinalResults";
+                string query = "SELECT IDcode, Date, FullName, PHName, PlateType, HolesNumber, Type, Job, Problem, Note FROM FinalResults";
                 sqlConnection.Open();
 
                 var cmd = new SQLiteCommand(query, sqlConnection);
