@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp2"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Rework Identification tool" Height="450" Width="800">
     <Grid>
         <ComboBox x:Name="Types" HorizontalAlignment="Left" Margin="10,26,0,0" VerticalAlignment="Top" Width="177" Height="28" SelectionChanged="Types_SelectionChanged"/>
         <ListBox x:Name="Jobs" HorizontalAlignment="Left" Height="110" Margin="10,225,0,0" VerticalAlignment="Top" Width="177" SelectionChanged="Jobs_SelectionChanged"/>
