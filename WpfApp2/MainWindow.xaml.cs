@@ -33,7 +33,7 @@ namespace WpfApp2
             Directory.CreateDirectory(Directory.GetDirectoryRoot(Directory.GetCurrentDirectory()) + "TechnoProbe");
             string connectionString = "Data Source="+ Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - 9) + "TechnoProbe.db;Version=3;New=False;Compress=True;";
             sqlConnection =new SQLiteConnection(connectionString);
-            PlateTypes.ItemsSource = new List<String>() { "U1", "U2", "M1", "M2", "L1", "L2" };
+            PlateTypes.ItemsSource = new List<String>() { "U1", "U2", "M1", "M2", "L" };
             Logo.Source = new BitmapImage(new Uri(Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - 9) + "Image\\Logo.jpeg", UriKind.Absolute));
             showTypes();
         }
