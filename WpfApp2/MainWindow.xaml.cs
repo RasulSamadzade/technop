@@ -17,16 +17,13 @@ using System.Configuration;
 using System.Data;
 using OfficeOpenXml;
 using System.IO;
+using System.Threading;
 
 namespace WpfApp2
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         SQLiteConnection sqlConnection;
-
         public MainWindow()
         {
             InitializeComponent();
@@ -34,6 +31,7 @@ namespace WpfApp2
             string connectionString = "Data Source="+ Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - 9) + "TechnoProbe.db;Version=3;New=False;Compress=True;";
             sqlConnection =new SQLiteConnection(connectionString);
             PlateTypes.ItemsSource = new List<String>() { "U1", "U2", "M1", "M2", "L" };
+            BA.ItemsSource = new List<String>() { "Prima di incollaggio", "Dopo di incollaggio" };
             Logo.Source = new BitmapImage(new Uri(Directory.GetCurrentDirectory().Substring(0, Directory.GetCurrentDirectory().Length - 9) + "Image\\Logo.jpeg", UriKind.Absolute));
             showTypes();
         }
@@ -103,7 +101,13 @@ namespace WpfApp2
 
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            generateListFromDatabase();
+            saveToDatabase();
+            Thread thread1 = new Thread(generateExcel);
+            thread1.Start();
+        }
+
+        private void generateExcel()
+        {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (ExcelPackage excel = new ExcelPackage())
             {
@@ -111,7 +115,7 @@ namespace WpfApp2
                 excel.Workbook.Worksheets.Add("Worksheet2");
                 excel.Workbook.Worksheets.Add("Worksheet3");
                 var data = generateListFromDatabase();
-                var headerRow = new List<string[]>(){ new string[] { "IDcode", "Date", "FullName", "PHName", "PlateType", "HolesNumber", "Type", "Job", "Problem", "Note" } };
+                var headerRow = new List<string[]>() { new string[] { "IDcode", "Date", "FullName", "PHName", "Prima/Dopo", "PlateType", "HolesNumber", "Type", "Job", "Problem", "Note" } };
                 string headerRange = "A1:" + Char.ConvertFromUtf32(headerRow[0].Length + 64) + "1";
                 string borderRange = "A1:" + Char.ConvertFromUtf32(headerRow[0].Length + 64) + (data.Count + 1).ToString();
                 var worksheet = excel.Workbook.Worksheets["Worksheet1"];
@@ -119,44 +123,39 @@ namespace WpfApp2
                 worksheet.Cells[headerRange].LoadFromArrays(headerRow);
                 worksheet.Cells[2, 1].LoadFromArrays(data);
                 var dir = Directory.GetDirectoryRoot(Directory.GetCurrentDirectory()) + "TechnoProbe";
-                FileInfo excelFile = new FileInfo(dir +"\\TechnoProb.xlsx");
+                FileInfo excelFile = new FileInfo(dir + "\\TechnoProb.xlsx");
                 excel.SaveAs(excelFile);
             }
         }
 
-        private void Save_Click(object sender, RoutedEventArgs e)
-        {
-            if (checkFields())
-            {           
-                try
-                {
-                    string query = "INSERT INTO FinalResults (Type, Job, Problem, Note, FullName, IdCode, PHName, HolesNumber, PlateType, Date) values (@Type, @Job, @Problem, @Note, @FullName, @IdCode, @PHName, @HolesNumber, @PlateType, @Date)";
-                    SQLiteCommand sqLiteCommand = new SQLiteCommand(query, sqlConnection);
-                    sqlConnection.Open();
-                    sqLiteCommand.Parameters.AddWithValue("@Type", Types.SelectedValue);
-                    sqLiteCommand.Parameters.AddWithValue("@Job", Jobs.SelectedValue);
-                    sqLiteCommand.Parameters.AddWithValue("@Problem", Problems.SelectedValue);
-                    sqLiteCommand.Parameters.AddWithValue("@Note", Note.Text);
-                    sqLiteCommand.Parameters.AddWithValue("@FullName", getFullName());
-                    sqLiteCommand.Parameters.AddWithValue("@IdCode", Id.Text);
-                    sqLiteCommand.Parameters.AddWithValue("@PHName", PH.Text);
-                    sqLiteCommand.Parameters.AddWithValue("@HolesNumber", Holes.Text);
-                    sqLiteCommand.Parameters.AddWithValue("@PlateType", PlateTypes.Text);
-                    sqLiteCommand.Parameters.AddWithValue("@Date", (DateTime.Now.Date + DateTime.Now.TimeOfDay).ToString());
-                    sqLiteCommand.ExecuteScalar();
-                    emptyFields();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("saveclick" + ex.ToString());
-                }
-                finally
-                {
-                    sqlConnection.Close();
-                }
-            } else
+        private void saveToDatabase()
+        {        
+            try
             {
-                MessageBox.Show("Please Fill all Fields");
+                string query = "INSERT INTO FinalResults (Type, Job, Problem, Note, FullName, IdCode, PHName, HolesNumber, PlateType, Date, BA) values (@Type, @Job, @Problem, @Note, @FullName, @IdCode, @PHName, @HolesNumber, @PlateType, @Date, @BA)";
+                SQLiteCommand sqLiteCommand = new SQLiteCommand(query, sqlConnection);
+                sqlConnection.Open();
+                sqLiteCommand.Parameters.AddWithValue("@Type", Types.SelectedIndex == -1? null : Types.SelectedValue);
+                sqLiteCommand.Parameters.AddWithValue("@Job", Jobs.SelectedIndex==-1? null : Jobs.SelectedValue);
+                sqLiteCommand.Parameters.AddWithValue("@Problem", Problems.SelectedIndex == -1 ? null : Problems.SelectedValue);
+                sqLiteCommand.Parameters.AddWithValue("@BA", BA.SelectedIndex == -1 ? null : BA.SelectedValue);
+                sqLiteCommand.Parameters.AddWithValue("@Note", Note.Text == "Note..." ? null : Note.Text);
+                sqLiteCommand.Parameters.AddWithValue("@FullName", getFullName() == " "? null: getFullName());
+                sqLiteCommand.Parameters.AddWithValue("@IdCode", Id.Text == "ID Code..."? null : Id.Text);
+                sqLiteCommand.Parameters.AddWithValue("@PHName", PH.Text == "PH Name..." ? null : PH.Text);
+                sqLiteCommand.Parameters.AddWithValue("@HolesNumber", Holes.Text == "Holes Number..." ? null : Holes.Text);
+                sqLiteCommand.Parameters.AddWithValue("@PlateType", PlateTypes.SelectedIndex==-1? null : PlateTypes.SelectedValue);
+                sqLiteCommand.Parameters.AddWithValue("@Date", (DateTime.Now.Date + DateTime.Now.TimeOfDay).ToString());
+                sqLiteCommand.ExecuteScalar();
+                emptyFields();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("saveclick" + ex.ToString());
+            }
+            finally
+            {
+                sqlConnection.Close();
             }
         }
 
@@ -182,15 +181,6 @@ namespace WpfApp2
             }
         }
 
-        public bool checkFields() {
-            if (Name.Text.Equals("") || Surname.Text.Equals("") || Note.Text.Equals("Note...") ||
-                Note.Text.Equals("") || Jobs.SelectedIndex == -1 || Problems.SelectedIndex == -1 ||
-                Types.SelectedIndex == -1) {
-                return false;
-            }
-            return true;
-        }
-
         public String getFullName() {
             return Name.Text + " " + Surname.Text;
         }
@@ -208,15 +198,105 @@ namespace WpfApp2
             var cellData = new List<string []>();
             try
             {
-                string query = "SELECT IDcode, Date, FullName, PHName, PlateType, HolesNumber, Type, Job, Problem, Note FROM FinalResults";
+                string query = "SELECT IDcode, Date, FullName, PHName, BA, PlateType, HolesNumber, Type, Job, Problem, Note FROM FinalResults";
                 sqlConnection.Open();
-
+                String a;
+                String b;
+                String c;
+                String d;
+                String e;
+                String f;
+                String g;
+                String h;
+                String i;
+                String j;
+                String k;
                 var cmd = new SQLiteCommand(query, sqlConnection);
                 using (SQLiteDataReader rdr = cmd.ExecuteReader())
                 {
                     while (rdr.Read())
                     {
-                        var cell = new string[] { rdr.GetString(0), rdr.GetString(1), rdr.GetString(2), rdr.GetString(3), rdr.GetString(4), rdr.GetString(5), rdr.GetString(6), rdr.GetString(7), rdr.GetString(8), rdr.GetString(9) };
+                        try
+                        {
+                            a = rdr.GetString(0);
+                        }
+                        catch (Exception ex)
+                        {
+                            a = "";
+                        }
+                        b = rdr.GetString(1);
+                        try
+                        {
+                            c = rdr.GetString(2);
+                        }
+                        catch (Exception ex)
+                        {
+                            c = "";
+                        }
+                        try
+                        {
+                            d = rdr.GetString(3);
+                        }
+                        catch (Exception ex)
+                        {
+                            d = "";
+                        }
+                        try
+                        {
+                            e = rdr.GetString(4);
+                        }
+                        catch (Exception ex)
+                        {
+                            e = "";
+                        }
+                        try
+                        {
+                            f = rdr.GetString(5);
+                        }
+                        catch (Exception ex)
+                        {
+                            f = "";
+                        }
+                        try
+                        {
+                            g = rdr.GetString(6);
+                        }
+                        catch (Exception ex)
+                        {
+                            g = "";
+                        }
+                        try
+                        {
+                            h = rdr.GetString(7);
+                        }
+                        catch (Exception ex)
+                        {
+                            h = "";
+                        }
+                        try
+                        {
+                            i = rdr.GetString(8);
+                        } catch(Exception ex)
+                        {
+                            i = "";
+                        }
+                        try
+                        {
+                            j = rdr.GetString(9);
+                        }
+                        catch (Exception ex)
+                        {
+                            j = "";
+                        }
+                        try
+                        {
+                            k = rdr.GetString(10);
+                        }
+                        catch (Exception ex)
+                        {
+                            k = "";
+                        }
+                        var cell = new string[] {a,b,c,d,e,f,g,h,i,j,k};
                         cellData.Add(cell);
                     }
                 }
@@ -246,6 +326,7 @@ namespace WpfApp2
             worksheet.Column(8).Width = 20;
             worksheet.Column(9).Width = 20;
             worksheet.Column(10).Width = 20;
+            worksheet.Column(11).Width = 20;
             worksheet.Cells[borderRange].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
             worksheet.Cells[borderRange].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
             worksheet.Cells[borderRange].Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
@@ -288,6 +369,17 @@ namespace WpfApp2
             else if (textBox.Text.Equals(""))
             {
                 textBox.Text = "Holes Number...";
+            }
+        }
+
+        private void BA_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (BA.SelectedItem.ToString() == "Prima di incollaggio")
+            {
+                PlateTypes.ItemsSource = new List<String>() { "U1", "U2", "M1", "M2", "L" };
+            } else
+            {
+                PlateTypes.ItemsSource = new List<String>() { "UD1", "UD2", "LD" };
             }
         }
     }
